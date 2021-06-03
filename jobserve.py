@@ -28,7 +28,7 @@ if "data scientist" in data.text.lower():
     email = driver.find_element_by_css_selector(".questionblock2>.questionInput>input")
     email.send_keys(EMAIL)
     Select(driver.find_element_by_id("Q0133_ans")).select_by_visible_text("Sponsorship Required")
-    driver.find_element_by_id('filCV').send_keys("/Users/mac/PycharmProjects/pythonProject/seyifunmi.docx")
+    driver.find_element_by_id('filCV').send_keys("/Users/mac/PycharmProjects/pythonProject/seyifunmi idowu.docx")
     driver.find_element_by_class_name('AppButton').click()
 
     driver.close()
