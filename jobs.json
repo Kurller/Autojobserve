@@ -1,0 +1,26 @@
+{
+    "job1": {
+        "Job_title": "Data Science Team Lead - Python - FinTech - Market Data",
+        "Salary": 90,
+        "Status": "Applied",
+        "Posted_by": "Kite Human Capital Ltd"
+    },
+    "job2": {
+        "Job_title": "Data Science (ML & AI) Team Intern/Graduate, London",
+        "Salary": 30,
+        "Status": "Not Applied",
+        "Posted_by": "Parity Professionals"
+    },
+    "job3": {
+        "Job_title": "Data Consultants - Engineering, Science, Modelling... - Financial Services - 6 months",
+        "Salary": 550,
+        "Status": "Applied",
+        "Posted_by": "TWH Consulting Ltd"
+    },
+    "job4": {
+        "Job_title": "Citizen Data Science Platform Lead",
+        "Salary": 0,
+        "Status": "Not Applied",
+        "Posted_by": "AstraZeneca"
+    }
+}
