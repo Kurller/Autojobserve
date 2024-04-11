@@ -12,4 +12,4 @@ class Scrape(Base):
     #user_id = Column(Integer, ForeignKey('user.id'))
     #user = relationship("User", back_populates="scrapes")
     Location = Column(String)
-Base.metadata.create_all(engine)
+#Base.metadata.create_all(engine)

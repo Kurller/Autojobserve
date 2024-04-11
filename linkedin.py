@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 def Linkedin_func():
+    driver = None  # Initialize driver outside the try block
     try:
         # Initialize Chrome WebDriver
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
@@ -48,7 +49,6 @@ def Linkedin_func():
             wait = WebDriverWait(driver, 10)
             time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'hours ago')]")))
 
-
             #time_element = job_element.find_element(By.XPATH, '//span[contains(text(), "hours ago")]')
             posted_time_text = time_element.text.strip()  # Extract text directly
             if posted_time_text:
@@ -81,7 +81,8 @@ def Linkedin_func():
     except Exception as e:
         print(e)
     finally:
-        # Close the WebDriver session
-        driver.quit()
+        if driver:
+            # Close the WebDriver session
+            driver.quit()
 
 Linkedin_func()
