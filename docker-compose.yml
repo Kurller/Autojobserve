@@ -16,7 +16,7 @@ services:
       - DATABASE_USERNAME=postgres
       
 
-  postgres:
+postgres:
     image: postgres
     environment:
       - POSTGRES_PASSWORD=1234
