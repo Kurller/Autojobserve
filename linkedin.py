@@ -1,88 +1,117 @@
-from link2 import save_new_jobs_to_database
 from selenium import webdriver
-from link import simulate_typing
-import time
-from selenium.webdriver.common.keys import Keys
-import pandas as pd
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
-from datetime import datetime, timedelta
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+import time
+import pandas as pd
+from link2 import save_new_jobs_to_database
+from link import simulate_typing
+def Driver():
+    options = webdriver.ChromeOptions()
+    options.add_argument("--ignore-ssl-errors=yes")
+    options.add_argument("--ignore-certificate-errors")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--disk-cache-size=0")
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+    driver.maximize_window()
+    return driver
+def login(driver, username, password):
+    driver.get("https://www.linkedin.com/login")
+    time.sleep(2)  # Let the page load
 
-def Linkedin_func():
-    driver = None  # Initialize driver outside the try block
+    # Simulate typing the username
+    email_input = driver.find_element(By.ID, "username")
+    simulate_typing(email_input, username)
+
+    # Simulate typing the password
+    password_input = driver.find_element(By.ID, "password")
+    simulate_typing(password_input, password)
+
+    # Click the login button
+    login_button = driver.find_element(By.XPATH, "//button[@type='submit']")
+    login_button.click()
+
+    # Wait for the home page to load after login
+    WebDriverWait(driver, 10).until(EC.url_contains("feed"))
+    return driver
+def get_jobs(job_title, username, password):
+    driver = Driver()
+    driver = login(driver, username, password)
+    driver.get("https://www.linkedin.com/")
+
+    # Enter job title
+    search_input = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, '//*[@id="global-nav-typeahead"]/input'))
+    )
+    search_input.clear()
+    search_input.send_keys(job_title)
+    search_input.send_keys(Keys.RETURN)
+
+    # Click on "Jobs" button
+    jobs_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//button[text()="Jobs"]'))
+    )
+    jobs_button.click()
+
+    # Click on the "Date Posted" filter
     try:
-        # Initialize Chrome WebDriver
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        # Wait for the "Date posted" dropdown to appear
+        date_posted_dropdown = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'searchFilter_timePostedRange')))
+        # Click on the "Date posted" dropdown
+        date_posted_dropdown.click()
 
-        # Navigate to LinkedIn login page
-        driver.get('https://www.linkedin.com/')
-        driver.implicitly_wait(5)  # Increase the implicit wait time
+        # Click on "Past 24 hours"
+        past_24_hours_option = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 't-14') and contains(@class, 't-black--light') and contains(@class, 't-normal') and text()='Past 24 hours']"))
+        )
+        past_24_hours_option.click()
         
-        # Simulate login
-        email = driver.find_element(By.XPATH, '//*[@id="session_key"]')
-        simulate_typing(email, 'bolaolad1@gmail.com')
-        email.send_keys(Keys.ENTER)
-        time.sleep(1)
-        password = driver.find_element(By.XPATH, '//*[@id="session_password"]')
-        simulate_typing(password, 'Kolawole@123')
-        password.send_keys(Keys.ENTER)
-        time.sleep(5)  
+        # Click on "Show results"
+        show_results = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Apply current filter to show results']"))
+        )
+        show_results.click()
 
-        # Navigate to LinkedIn jobs page
-        driver.get("https://www.linkedin.com/jobs/search/?currentJobId=3883409291&f_TPR=r86400&keywords=data%20scientist&origin=JOB_SEARCH_PAGE_JOB_FILTER")
+        # Wait for the search results to load
+        time.sleep(5)  # Adjust as needed
 
-        # Extract job titles, locations, and company names
-        job_elements = driver.find_elements(By.CLASS_NAME, 'job-card-container__link')
-        location_elements = driver.find_elements(By.CLASS_NAME, 'job-card-container__metadata-item')
-        company_elements = driver.find_elements(By.CLASS_NAME, 'job-card-container__primary-description')
+        # Get job details
+        job_elements = driver.find_elements(By.CLASS_NAME, "job-card-container__link")
+        location_elements = driver.find_elements(By.CLASS_NAME, 'job-card-container__metadata-item ')
+        company_elements = driver.find_elements(By.CLASS_NAME, 'job-card-container__primary-description ')
 
-        job_details = []
-        for job_element, location_element, company_element in zip(job_elements, location_elements, company_elements):
-            job_title = job_element.text
-            location = location_element.text
-            company_name = company_element.text
-            
-            # Find the time element for the current job
-            wait = WebDriverWait(driver, 10)
-            time_element = wait.until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'hours ago')]")))
+        # Ensure all arrays have the same length
+        min_length = min(len(job_elements), len(location_elements), len(company_elements))
+        job_titles = [x.text.strip() for x in job_elements[:min_length]]
+        location_names = [y.text.strip() for y in location_elements[:min_length]]
+        company_names = [z.text.strip() for z in company_elements[:min_length]]
 
-            #time_element = job_element.find_element(By.XPATH, '//span[contains(text(), "hours ago")]')
-            posted_time_text = time_element.text.strip()  # Extract text directly
-            if posted_time_text:
-                # Parse the posted time
-                hours_ago = int(posted_time_text.split()[0])  # Extract hours as integer
-                posted_time = datetime.now() - timedelta(hours=hours_ago)  # Calculate the actual posted time
-                print(posted_time)
-                # Check if the job was posted within the last 24 hours
-                if datetime.now() - posted_time < timedelta(days=1):
-                    job_details.append({
-                        "company_Names": company_name,
-                        "job_titles": job_title,
-                        "Location": location,
-                        "posted_time":posted_time
-                    })
-                else:
-                    raise Exception("Job posting is older than 24 hours")
-            else:
-                raise Exception("Posted time not found")
+        final = pd.DataFrame({
+            "company_Names": company_names,
+            "Location": location_names,
+            "job_titles": job_titles
+        })
 
-        # Create DataFrame from scraped data
-        final = pd.DataFrame(job_details)
+        print(final)
 
         # Save new jobs to the database
         if not final.empty:
             save_new_jobs_to_database(final)
         else:
-            print("No new jobs posted within the last 24 hours")
+            print("No new jobs found")
 
-    except Exception as e:
-        print(e)
-    finally:
-        if driver:
-            # Close the WebDriver session
-            driver.quit()
+    except TimeoutException as ex:
+        print("Timeout while waiting for elements to load:", ex)
 
-Linkedin_func()
+
+# LinkedIn credentials
+username = "bolaolad1@gmail.com"
+password = "Kolawole@123"
+
+# Job title to search for
+job_title = "Software"
+get_jobs(job_title=job_title, username=username, password=password)
