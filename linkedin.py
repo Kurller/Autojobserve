@@ -38,9 +38,9 @@ def login(driver, username, password):
     # Wait for the home page to load after login
     WebDriverWait(driver, 10).until(EC.url_contains("feed"))
     return driver
-def get_jobs(job_title, username, password):
+def get_jobs(job_title):
     driver = Driver()
-    driver = login(driver, username, password)
+    login(driver, username, password)  # Use the provided username and password here
     driver.get("https://www.linkedin.com/")
 
     # Enter job title
@@ -109,9 +109,9 @@ def get_jobs(job_title, username, password):
 
 
 # LinkedIn credentials
-username = "bolaolad1@gmail.com"
-password = "Kolawole@123"
+username = "kolaquadry@gmail.com"
+password = "Adebola@12345"
 
 # Job title to search for
 job_title = "Software"
-get_jobs(job_title=job_title, username=username, password=password)
+#get_jobs(job_title)
